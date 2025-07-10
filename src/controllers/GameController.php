@@ -78,15 +78,26 @@ switch($action) {
                 
                 // Si c'est la 10ème manche, terminer la partie
                 if ($round_number >= 10) {
-                    // Trouver le gagnant (meilleur score)
-                    $players = $game->getPlayers($game_id);
+                    // Récupérer toutes les manches pour calculer les scores réels
+                    $rounds = $game->getRounds($game_id);
+                    $player_totals = [];
+                    
+                    // Calculer le total pour chaque joueur
+                    while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
+                        if (!isset($player_totals[$round['player_id']])) {
+                            $player_totals[$round['player_id']] = 0;
+                        }
+                        $player_totals[$round['player_id']] += $round['score'];
+                    }
+                    
+                    // Trouver le gagnant (meilleur score calculé)
                     $winner_id = null;
                     $best_score = PHP_INT_MIN;
                     
-                    while ($player = $players->fetch(PDO::FETCH_ASSOC)) {
-                        if ($player['score_total'] > $best_score) {
-                            $best_score = $player['score_total'];
-                            $winner_id = $player['user_id'];
+                    foreach ($player_totals as $player_id => $total_score) {
+                        if ($total_score > $best_score) {
+                            $best_score = $total_score;
+                            $winner_id = $player_id;
                         }
                     }
                     

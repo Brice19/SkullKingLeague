@@ -19,15 +19,38 @@
                 <div class="mb-4">
                     <h5>Scores actuels :</h5>
                     <div class="row">
-                        <?php 
-                        $players->execute(); // Reset pour parcourir à nouveau
+                        <?php
+                        // Récupérer d'abord toutes les données des manches
+                        $rounds = $game->getRounds($game_id);
+                        $rounds_data = [];
+                        $player_totals = [];
+                        
+                        // Initialiser les totaux à zéro pour tous les joueurs
+                        $players->execute();
+                        while ($player = $players->fetch(PDO::FETCH_ASSOC)) {
+                            $player_totals[$player['user_id']] = 0;
+                        }
+                        
+                        // Calculer les totaux en additionnant les scores de chaque manche
+                        while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
+                            $rounds_data[$round['numero_manche']][$round['player_id']] = [
+                                'pseudo' => $round['pseudo'],
+                                'score' => $round['score']
+                            ];
+                            
+                            // Ajouter le score de cette manche au total du joueur
+                            $player_totals[$round['player_id']] += $round['score'];
+                        }
+                        
+                        // Afficher les scores calculés
+                        $players->execute();
                         while ($player = $players->fetch(PDO::FETCH_ASSOC)): 
                         ?>
                         <div class="col-md-6 col-lg-4 mb-2">
                             <div class="card border-info">
                                 <div class="card-body text-center py-2">
                                     <h6 class="mb-1"><?php echo htmlspecialchars($player['pseudo']); ?></h6>
-                                    <span class="badge bg-info fs-6"><?php echo $player['score_total']; ?> pts</span>
+                                    <span class="badge bg-info fs-6"><?php echo $player_totals[$player['user_id']] ?? 0; ?> pts</span>
                                 </div>
                             </div>
                         </div>
@@ -103,14 +126,7 @@
             </div>
             <div class="card-body">
                 <?php
-                $rounds = $game->getRounds($game_id);
-                $rounds_data = [];
-                while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
-                    $rounds_data[$round['numero_manche']][$round['player_id']] = [
-                        'pseudo' => $round['pseudo'],
-                        'score' => $round['score']
-                    ];
-                }
+                // Utilisation des données déjà chargées dans la section des scores actuels
                 ?>
                 
                 <div class="table-responsive">

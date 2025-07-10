@@ -90,11 +90,23 @@ class Game {
     }
 
     private function updatePlayerScore($game_id, $player_id, $score) {
+        // Au lieu d'ajouter directement le score, recalculons le total à partir de toutes les manches
+        // 1. Récupérer tous les scores de ce joueur pour cette partie
+        $query_get = "SELECT SUM(score) as total_score FROM rounds 
+                      WHERE game_id = ? AND player_id = ?";
+        $stmt_get = $this->conn->prepare($query_get);
+        $stmt_get->bindParam(1, $game_id);
+        $stmt_get->bindParam(2, $player_id);
+        $stmt_get->execute();
+        $result = $stmt_get->fetch(PDO::FETCH_ASSOC);
+        $total_score = $result['total_score'] ?? 0;
+        
+        // 2. Mettre à jour le score total dans game_players
         $query = "UPDATE game_players 
-                  SET score_total = score_total + ? 
+                  SET score_total = ? 
                   WHERE game_id = ? AND user_id = ?";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $score);
+        $stmt->bindParam(1, $total_score);
         $stmt->bindParam(2, $game_id);
         $stmt->bindParam(3, $player_id);
         return $stmt->execute();

@@ -25,9 +25,29 @@
                 </thead>
                 <tbody>
                     <?php 
+                    // Récupérer tous les scores des manches
+                    $rounds_data = [];
+                    $player_totals = [];
+                    
+                    // Initialiser les totaux à zéro
+                    while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
+                        $rounds_data[$round['numero_manche']][$round['player_id']] = [
+                            'pseudo' => $round['pseudo'],
+                            'score' => $round['score']
+                        ];
+                        
+                        // Calculer le total pour chaque joueur
+                        if (!isset($player_totals[$round['player_id']])) {
+                            $player_totals[$round['player_id']] = 0;
+                        }
+                        $player_totals[$round['player_id']] += $round['score'];
+                    }
+                    
                     $position = 1;
                     $players_array = [];
                     while ($player = $players->fetch(PDO::FETCH_ASSOC)) {
+                        // Remplacer le score_total par le total calculé
+                        $player['score_total'] = $player_totals[$player['user_id']] ?? 0;
                         $players_array[] = $player;
                     }
                     
@@ -62,14 +82,7 @@
 
         <!-- Détail par manche -->
         <?php
-        $rounds_data = [];
-        while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
-            $rounds_data[$round['numero_manche']][$round['player_id']] = [
-                'pseudo' => $round['pseudo'],
-                'score' => $round['score']
-            ];
-        }
-        
+        // Utilisation des données déjà chargées plus haut
         if (!empty($rounds_data)):
         ?>
         <h6 class="mt-4">Détail par manche :</h6>
