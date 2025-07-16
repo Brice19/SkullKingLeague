@@ -96,39 +96,89 @@ $users = $user->getAll();
 
 <!-- Modal Nouvelle Partie -->
 <div class="modal fade" id="newGameModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="index.php?page=game&action=create" method="POST">
+            <form action="index.php?page=game&action=create" method="POST" id="newGameForm">
                 <div class="modal-header">
-                    <h5 class="modal-title">Nouvelle Partie</h5>
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle-fill"></i> Nouvelle Partie
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Sélectionnez les joueurs (1 à 6 joueurs) :</p>
                     <div class="row">
-                        <?php while ($row = $users->fetch(PDO::FETCH_ASSOC)): ?>
-                        <div class="col-md-6 mb-2">
-                            <div class="form-check">
-                                <input class="form-check-input player-checkbox" type="checkbox" 
-                                       name="players[]" value="<?php echo $row['id']; ?>" 
-                                       id="player<?php echo $row['id']; ?>">
-                                <label class="form-check-label" for="player<?php echo $row['id']; ?>">
-                                    <?php echo htmlspecialchars($row['pseudo']); ?>
-                                    <small class="text-muted">(ELO: <?php echo $row['elo']; ?>)</small>
-                                </label>
+                        <!-- Liste des joueurs disponibles -->
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-people-fill"></i> Joueurs disponibles</h6>
+                            <p class="text-muted small">Cliquez pour sélectionner (1 à 6 joueurs)</p>
+                            <div id="available-players" class="list-group">
+                                <?php 
+                                $users->execute(); // Reset le curseur
+                                while ($row = $users->fetch(PDO::FETCH_ASSOC)): 
+                                ?>
+                                <div class="list-group-item list-group-item-action available-player" 
+                                     data-player-id="<?php echo $row['id']; ?>"
+                                     data-player-name="<?php echo htmlspecialchars($row['pseudo']); ?>"
+                                     data-player-elo="<?php echo $row['elo']; ?>"
+                                     style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($row['pseudo']); ?></strong>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-info"><?php echo $row['elo']; ?> ELO</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endwhile; ?>
                             </div>
                         </div>
-                        <?php endwhile; ?>
+                        
+                        <!-- Ordre de jeu -->
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-list-ol"></i> Ordre de jeu</h6>
+                            <p class="text-muted small">
+                                <span class="d-none d-md-inline">Glissez-déposez pour réorganiser ou </span>
+                                utilisez les boutons ↑↓
+                            </p>
+                            <div id="selected-players" class="mb-3" style="min-height: 200px;">
+                                <div id="empty-placeholder" class="text-center text-muted p-4 border border-dashed rounded">
+                                    <i class="bi bi-arrow-left"></i>
+                                    <br>Sélectionnez des joueurs
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2 mb-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="randomizeOrder">
+                                    <i class="bi bi-shuffle"></i> Ordre aléatoire
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" id="clearAll">
+                                    <i class="bi bi-x-circle"></i> Tout effacer
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <div id="player-count-info" class="alert alert-info mt-3" style="display: none;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span id="selected-count">0</span> joueur(s) sélectionné(s)
+                    </div>
+                    
                     <div id="player-count-warning" class="alert alert-warning mt-3" style="display: none;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
                         Veuillez sélectionner entre 1 et 6 joueurs.
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success" id="start-game-btn" disabled>Commencer la partie</button>
+                    <button type="submit" class="btn btn-success" id="start-game-btn" disabled>
+                        <i class="bi bi-play-fill"></i> Commencer la partie
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Inclure le JavaScript pour la nouvelle interface de création de partie -->
+<script src="../assets/js/new-game.js"></script>

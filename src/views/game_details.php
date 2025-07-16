@@ -28,13 +28,19 @@
                     // Récupérer tous les scores des manches
                     $rounds_data = [];
                     $player_totals = [];
+                    $starting_players = []; // Pour stocker qui commence chaque manche
                     
-                    // Initialiser les totaux à zéro
+                    // Initialiser les totaux à zéro et récupérer les données des manches
                     while ($round = $rounds->fetch(PDO::FETCH_ASSOC)) {
                         $rounds_data[$round['numero_manche']][$round['player_id']] = [
                             'pseudo' => $round['pseudo'],
                             'score' => $round['score']
                         ];
+                        
+                        // Stocker qui commence chaque manche
+                        if ($round['starting_player_id'] && !isset($starting_players[$round['numero_manche']])) {
+                            $starting_players[$round['numero_manche']] = $round['starting_player_id'];
+                        }
                         
                         // Calculer le total pour chaque joueur
                         if (!isset($player_totals[$round['player_id']])) {
@@ -45,11 +51,19 @@
                     
                     $position = 1;
                     $players_array = [];
+                    $players_with_order = []; // Pour maintenir l'ordre original
+                    
                     while ($player = $players->fetch(PDO::FETCH_ASSOC)) {
                         // Remplacer le score_total par le total calculé
                         $player['score_total'] = $player_totals[$player['user_id']] ?? 0;
                         $players_array[] = $player;
+                        
+                        // Conserver l'ordre original des joueurs aussi
+                        $players_with_order[$player['player_order']] = $player;
                     }
+                    
+                    // Trier l'ordre original des joueurs par player_order
+                    ksort($players_with_order);
                     
                     // Trier par score décroissant
                     usort($players_array, function($a, $b) {
@@ -91,8 +105,12 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Manche</th>
-                        <?php foreach ($players_array as $player): ?>
-                        <th><?php echo htmlspecialchars($player['pseudo']); ?></th>
+                        <th>Commence</th>
+                        <?php foreach ($players_with_order as $player): ?>
+                        <th>
+                            <span class="badge bg-secondary rounded-pill me-1"><?php echo $player['player_order']; ?></span>
+                            <?php echo htmlspecialchars($player['pseudo']); ?>
+                        </th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
@@ -101,12 +119,29 @@
                     <?php if (isset($rounds_data[$i])): ?>
                     <tr>
                         <td><strong><?php echo $i; ?></strong></td>
-                        <?php foreach ($players_array as $player): ?>
+                        <td>
+                            <?php 
+                            $starting_player_id = $starting_players[$i] ?? null;
+                            if ($starting_player_id) {
+                                // Trouver le pseudo du joueur qui commence
+                                foreach ($players_with_order as $player) {
+                                    if ($player['user_id'] == $starting_player_id) {
+                                        echo '<span class="badge bg-warning">' . htmlspecialchars($player['pseudo']) . '</span>';
+                                        break;
+                                    }
+                                }
+                            } else {
+                                echo '<span class="text-muted">-</span>';
+                            }
+                            ?>
+                        </td>
+                        <?php foreach ($players_with_order as $player): ?>
                         <td>
                             <?php 
                             $score = $rounds_data[$i][$player['user_id']]['score'] ?? 0;
+                            $is_starting = isset($starting_players[$i]) && $starting_players[$i] == $player['user_id'];
                             ?>
-                            <span class="badge <?php echo $score >= 0 ? 'bg-success' : 'bg-danger'; ?>">
+                            <span class="badge <?php echo $score >= 0 ? 'bg-success' : 'bg-danger'; ?> <?php echo $is_starting ? 'border border-warning' : ''; ?>">
                                 <?php echo $score; ?>
                             </span>
                         </td>

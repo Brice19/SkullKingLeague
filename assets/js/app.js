@@ -7,15 +7,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Gestion du formulaire de nouvelle partie
-    initNewGameForm();
+    // Gestion du formulaire de nouvelle partie (version ancienne - conservée pour compatibilité)
+    initLegacyNewGameForm();
     
     // Animations d'apparition
     animateElements();
 });
 
-// Fonction pour gérer le formulaire de nouvelle partie
-function initNewGameForm() {
+// Fonction pour gérer le formulaire de nouvelle partie (version legacy)
+function initLegacyNewGameForm() {
     const playerCheckboxes = document.querySelectorAll('.player-checkbox');
     const startGameBtn = document.getElementById('start-game-btn');
     const playerCountWarning = document.getElementById('player-count-warning');

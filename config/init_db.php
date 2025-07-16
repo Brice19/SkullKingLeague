@@ -51,6 +51,7 @@ try {
         game_id INT,
         user_id INT,
         score_total INT DEFAULT 0,
+        player_order INT DEFAULT 1,
         FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )");
@@ -64,10 +65,34 @@ try {
         numero_manche INT,
         player_id INT,
         score INT,
+        starting_player_id INT NULL,
         FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
-        FOREIGN KEY (player_id) REFERENCES users(id)
+        FOREIGN KEY (player_id) REFERENCES users(id),
+        FOREIGN KEY (starting_player_id) REFERENCES users(id)
     )");
     echo "✅ Table rounds créée\n";
+
+    // Ajouter des index pour optimiser les requêtes
+    echo "📊 Ajout des index pour optimisation...\n";
+    $pdo->exec("CREATE INDEX idx_game_players_order ON game_players(game_id, player_order)");
+    $pdo->exec("CREATE INDEX idx_rounds_starting_player ON rounds(game_id, numero_manche, starting_player_id)");
+    echo "✅ Index créés\n";
+
+    // Table elo_history
+    echo "📈 Création de la table elo_history...\n";
+    $pdo->exec("CREATE TABLE IF NOT EXISTS elo_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    game_id INT NOT NULL,
+    user_id INT NOT NULL,
+    old_elo INT NOT NULL,
+    new_elo INT NOT NULL,
+    elo_change INT NOT NULL,
+    rank INT NOT NULL COMMENT 'Rang réel du joueur dans la partie',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (game_id) REFERENCES games(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    )");
+
     
     // Table admin (pour l'authentification)
     echo "🔐 Création de la table admin...\n";

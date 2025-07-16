@@ -229,3 +229,91 @@ footer {
     background: linear-gradient(135deg, #cd7f32, #daa520);
     color: #fff;
 }
+
+/* Styles pour la nouvelle interface de création de partie */
+.available-player:hover {
+    background-color: #e9ecef !important;
+    border-color: #007bff !important;
+}
+
+.available-player.selected {
+    background-color: #d1ecf1 !important;
+    border-color: #bee5eb !important;
+}
+
+.selected-player {
+    background-color: #fff !important;
+    border: 1px solid #dee2e6;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.selected-player:hover {
+    background-color: #f8f9fa !important;
+}
+
+.selected-player.opacity-50 {
+    opacity: 0.5;
+}
+
+#selected-players {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+#selected-players.dragover {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+#empty-placeholder {
+    background-color: #fff;
+    color: #6c757d;
+    border-radius: 8px;
+}
+
+.player-position {
+    min-width: 25px;
+    text-align: center;
+}
+
+.remove-player {
+    padding: 2px 6px;
+    font-size: 0.8rem;
+}
+
+.grip-vertical {
+    color: #6c757d;
+}
+
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: 2px;
+}
+
+/* Animation pour les éléments drag & drop */
+.selected-player {
+    transition: all 0.2s ease;
+}
+
+.selected-player:hover {
+    transform: translateX(2px);
+}
+
+/* Styles responsive pour le modal */
+@media (max-width: 768px) {
+    .modal-lg {
+        max-width: 95%;
+    }
+    
+    #available-players,
+    #selected-players {
+        margin-bottom: 20px;
+    }
+}

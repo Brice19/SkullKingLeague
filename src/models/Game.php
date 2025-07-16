@@ -22,14 +22,18 @@ class Game {
         if($stmt->execute()) {
             $game_id = $this->conn->lastInsertId();
             
-            // Ajouter les joueurs à la partie
-            $query_players = "INSERT INTO game_players (game_id, user_id) VALUES (?, ?)";
+            // Ajouter les joueurs à la partie avec l'ordre fourni
+            // L'ordre est maintenant défini par l'interface utilisateur
+            $query_players = "INSERT INTO game_players (game_id, user_id, player_order) VALUES (?, ?, ?)";
             $stmt_players = $this->conn->prepare($query_players);
             
+            $order = 1;
             foreach($player_ids as $player_id) {
                 $stmt_players->bindParam(1, $game_id);
                 $stmt_players->bindParam(2, $player_id);
+                $stmt_players->bindParam(3, $order);
                 $stmt_players->execute();
+                $order++;
             }
             
             return $game_id;
@@ -53,7 +57,7 @@ class Game {
                   FROM game_players gp
                   JOIN users u ON gp.user_id = u.id
                   WHERE gp.game_id = ?
-                  ORDER BY gp.score_total DESC";
+                  ORDER BY gp.player_order ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $game_id);
         $stmt->execute();
@@ -73,7 +77,11 @@ class Game {
     }
 
     public function addRound($game_id, $numero_manche, $scores) {
-        $query = "INSERT INTO rounds (game_id, numero_manche, player_id, score) VALUES (?, ?, ?, ?)";
+        // Déterminer qui commence cette manche
+        $starting_player = $this->getStartingPlayer($game_id, $numero_manche);
+        $starting_player_id = $starting_player ? $starting_player['user_id'] : null;
+        
+        $query = "INSERT INTO rounds (game_id, numero_manche, player_id, score, starting_player_id) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($query);
         
         foreach($scores as $player_id => $score) {
@@ -81,6 +89,7 @@ class Game {
             $stmt->bindParam(2, $numero_manche);
             $stmt->bindParam(3, $player_id);
             $stmt->bindParam(4, $score);
+            $stmt->bindParam(5, $starting_player_id);
             $stmt->execute();
             
             // Mettre à jour le score total
@@ -154,6 +163,53 @@ class Game {
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $this->id);
         return $stmt->execute();
+    }
+
+    public function getStartingPlayer($game_id, $round_number) {
+        // Le joueur qui commence est déterminé par l'ordre et le numéro de manche
+        $query = "SELECT gp.user_id, gp.player_order, u.pseudo
+                  FROM game_players gp
+                  JOIN users u ON gp.user_id = u.id
+                  WHERE gp.game_id = ?
+                  ORDER BY gp.player_order ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $game_id);
+        $stmt->execute();
+        $players = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (empty($players)) {
+            return null;
+        }
+        
+        // Calculer l'index du joueur qui commence (rotation basée sur la manche)
+        $starting_index = ($round_number - 1) % count($players);
+        return $players[$starting_index];
+    }
+    
+    public function getPlayersInOrder($game_id) {
+        // Récupère les joueurs dans l'ordre de jeu (pour l'affichage)
+        $query = "SELECT gp.*, u.pseudo 
+                  FROM game_players gp
+                  JOIN users u ON gp.user_id = u.id
+                  WHERE gp.game_id = ?
+                  ORDER BY gp.player_order ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $game_id);
+        $stmt->execute();
+        return $stmt;
+    }
+    
+    public function getPlayersForRanking($game_id) {
+        // Récupère les joueurs triés par score (pour le classement)
+        $query = "SELECT gp.*, u.pseudo 
+                  FROM game_players gp
+                  JOIN users u ON gp.user_id = u.id
+                  WHERE gp.game_id = ?
+                  ORDER BY gp.score_total DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $game_id);
+        $stmt->execute();
+        return $stmt;
     }
 }
 ?>

@@ -38,21 +38,47 @@
                                 return $b['score_total'] - $a['score_total'];
                             });
                             
-                            foreach ($players_array as $player): 
-                                // Récupérer l'ELO actuel pour calculer l'évolution
+                            // Gérer les égalités pour l'affichage
+                            $last_score = null;
+                            $last_position = 0;
+                            $display_positions = [];
+                            
+                            foreach ($players_array as $index => $player) {
+                                $score = $player['score_total'];
+                                
+                                if ($last_score !== null && $score == $last_score) {
+                                    // Égalité avec le joueur précédent, même position
+                                    $display_positions[$index] = $last_position;
+                                } else {
+                                    // Nouveau score
+                                    $last_position = $position;
+                                    $display_positions[$index] = $position;
+                                }
+                                
+                                $last_score = $score;
+                                $position++;
+                            }
+                            
+                            $position = 1;
+                            foreach ($players_array as $index => $player): 
+                                // Récupérer les données ELO pour ce joueur
                                 $user_data = $user->getById($player['user_id']);
-                                $elo_evolution = $user_data['elo'] - 1000; // Approximation simplifiée
+                                $display_position = $display_positions[$index];
+                                
+                                // Récupérer le rang réel depuis l'historique ELO s'il existe
+                                $elo_data = isset($elo_changes[$player['user_id']]) ? $elo_changes[$player['user_id']] : null;
+                                $rank_info = $elo_data && isset($elo_data['rank']) ? " (rang " . $elo_data['rank'] . ")" : "";
                             ?>
-                            <tr class="<?php echo $position == 1 ? 'table-warning' : ''; ?>">
+                            <tr class="<?php echo $display_position == 1 ? 'table-warning' : ''; ?>">
                                 <td>
-                                    <?php if ($position == 1): ?>
-                                        <i class="bi bi-trophy-fill text-warning"></i> 1er
-                                    <?php elseif ($position == 2): ?>
-                                        <i class="bi bi-award-fill text-secondary"></i> 2ème
-                                    <?php elseif ($position == 3): ?>
-                                        <i class="bi bi-award-fill" style="color: #CD7F32;"></i> 3ème
+                                    <?php if ($display_position == 1): ?>
+                                        <i class="bi bi-trophy-fill text-warning"></i> 1er<?php echo $rank_info; ?>
+                                    <?php elseif ($display_position == 2): ?>
+                                        <i class="bi bi-award-fill text-secondary"></i> 2ème<?php echo $rank_info; ?>
+                                    <?php elseif ($display_position == 3): ?>
+                                        <i class="bi bi-award-fill" style="color: #CD7F32;"></i> 3ème<?php echo $rank_info; ?>
                                     <?php else: ?>
-                                        <?php echo $position; ?>ème
+                                        <?php echo $display_position; ?>ème<?php echo $rank_info; ?>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -62,12 +88,33 @@
                                     <span class="badge bg-primary fs-6"><?php echo $player['score_total']; ?> points</span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info"><?php echo $user_data['elo']; ?> ELO</span>
-                                    <?php if ($position == 1): ?>
-                                        <i class="bi bi-arrow-up text-success"></i>
-                                    <?php else: ?>
-                                        <i class="bi bi-arrow-down text-danger"></i>
-                                    <?php endif; ?>
+                                    <?php
+                                    // Récupérer le changement d'ELO pour ce joueur
+                                    $elo_data = isset($elo_changes[$player['user_id']]) ? $elo_changes[$player['user_id']] : null;
+                                    $old_elo = $elo_data ? $elo_data['old_elo'] : $user_data['elo'];
+                                    $new_elo = $elo_data ? $elo_data['new_elo'] : $user_data['elo'];
+                                    $change = $elo_data ? $elo_data['elo_change'] : 0;
+                                    
+                                    // Définir la couleur et l'icône en fonction du changement d'ELO
+                                    $badge_class = "bg-info";
+                                    $icon_class = "bi-dash";
+                                    $text_class = "text-secondary";
+                                    
+                                    if ($change > 0) {
+                                        $badge_class = "bg-success";
+                                        $icon_class = "bi-arrow-up";
+                                        $text_class = "text-success";
+                                    } elseif ($change < 0) {
+                                        $badge_class = "bg-danger";
+                                        $icon_class = "bi-arrow-down";
+                                        $text_class = "text-danger";
+                                    }
+                                    ?>
+                                    <span class="badge <?php echo $badge_class; ?>"><?php echo $new_elo; ?> ELO</span>
+                                    <i class="bi <?php echo $icon_class; ?> <?php echo $text_class; ?>"></i>
+                                    <small class="<?php echo $text_class; ?>">
+                                        <?php echo $change > 0 ? '+' . $change : $change; ?>
+                                    </small>
                                 </td>
                             </tr>
                             <?php 

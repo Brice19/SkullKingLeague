@@ -17,6 +17,7 @@ switch($action) {
             $player_ids = $_POST['players'];
             
             if (count($player_ids) >= 1 && count($player_ids) <= 6) {
+                // Les joueurs sont déjà dans l'ordre souhaité grâce à l'interface
                 $game_id = $game->create($player_ids);
                 if ($game_id) {
                     header("Location: index.php?page=game&action=play&id=" . $game_id);
@@ -40,8 +41,9 @@ switch($action) {
             exit;
         }
 
-        $players = $game->getPlayers($game_id);
+        $players = $game->getPlayersInOrder($game_id);
         $current_round = $game->getCurrentRound($game_id);
+        $starting_player = $game->getStartingPlayer($game_id, $current_round);
         
         include '../src/views/game_play.php';
         break;
@@ -136,7 +138,24 @@ switch($action) {
         }
 
         $game_data = $game->getById($game_id);
-        $players = $game->getPlayers($game_id);
+        $players = $game->getPlayersForRanking($game_id);
+        
+        // Récupérer les changements d'ELO pour cette partie
+        $elo_changes = [];
+        
+        try {
+            $query_elo = "SELECT * FROM elo_history WHERE game_id = ?";
+            $stmt_elo = $db->prepare($query_elo);
+            $stmt_elo->bindParam(1, $game_id);
+            $stmt_elo->execute();
+            
+            while ($row = $stmt_elo->fetch(PDO::FETCH_ASSOC)) {
+                $elo_changes[$row['user_id']] = $row;
+            }
+        } catch (PDOException $e) {
+            // La table n'existe peut-être pas encore, on continue sans données ELO
+            // On les récupérera quand la prochaine partie se terminera
+        }
         
         include '../src/views/game_finish.php';
         break;
@@ -149,7 +168,7 @@ switch($action) {
         }
 
         $game_data = $game->getById($game_id);
-        $players = $game->getPlayers($game_id);
+        $players = $game->getPlayersForRanking($game_id);
         $rounds = $game->getRounds($game_id);
         
         include '../src/views/game_details.php';

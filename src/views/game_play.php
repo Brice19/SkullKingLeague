@@ -42,15 +42,24 @@
                             $player_totals[$round['player_id']] += $round['score'];
                         }
                         
-                        // Afficher les scores calculés
+                        // Afficher les scores dans l'ordre des joueurs (pas par score)
                         $players->execute();
                         while ($player = $players->fetch(PDO::FETCH_ASSOC)): 
+                            $is_starting_player = $starting_player && $player['user_id'] == $starting_player['user_id'];
                         ?>
                         <div class="col-md-6 col-lg-4 mb-2">
-                            <div class="card border-info">
+                            <div class="card <?php echo $is_starting_player ? 'border-warning bg-warning bg-opacity-10' : 'border-info'; ?>">
                                 <div class="card-body text-center py-2">
-                                    <h6 class="mb-1"><?php echo htmlspecialchars($player['pseudo']); ?></h6>
-                                    <span class="badge bg-info fs-6"><?php echo $player_totals[$player['user_id']] ?? 0; ?> pts</span>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge <?php echo $is_starting_player ? 'bg-warning text-dark' : 'bg-secondary'; ?> rounded-pill"><?php echo $player['player_order']; ?></span>
+                                        <h6 class="mb-1 flex-grow-1 <?php echo $is_starting_player ? 'fw-bold' : ''; ?>"><?php echo htmlspecialchars($player['pseudo']); ?></h6>
+                                        <span class="badge bg-info fs-6"><?php echo $player_totals[$player['user_id']] ?? 0; ?> pts</span>
+                                    </div>
+                                    <?php if ($is_starting_player): ?>
+                                    <small class="text-warning fw-bold">
+                                        <i class="bi bi-play-fill"></i> Commence cette manche
+                                    </small>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -71,28 +80,42 @@
                     </div>
                     
                     <div class="alert alert-light border">
-                        <small class="text-muted">
-                            <i class="bi bi-lightbulb"></i> 
-                            <strong>Règle :</strong> Entrez les points gagnés ou perdus pour cette manche (pas les points cumulés). 
-                            Les scores doivent être des multiples de 10 (exemples : 10, 20, -10, -30, 50...) et ne peuvent pas être zéro.
-                        </small>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <small class="text-muted">
+                                    <i class="bi bi-lightbulb"></i> 
+                                    <strong>Règle :</strong> Entrez les points gagnés ou perdus pour cette manche (pas les points cumulés). 
+                                    Les scores doivent être des multiples de 10 (exemples : 10, 20, -10, -30, 50...) et ne peuvent pas être zéro.
+                                </small>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">
+                                    <i class="bi bi-arrow-clockwise"></i> 
+                                    <strong>Ordre :</strong> Chaque manche, c'est au tour du joueur suivant de commencer.
+                                </small>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="row">
                         <?php 
                         $players->execute(); // Reset pour parcourir à nouveau
                         while ($player = $players->fetch(PDO::FETCH_ASSOC)): 
+                            $is_starting_player = $starting_player && $player['user_id'] == $starting_player['user_id'];
                         ?>
                         <div class="col-md-6 mb-3">
                             <label for="score_<?php echo $player['user_id']; ?>" class="form-label">
-                                Points pour <?php echo htmlspecialchars($player['pseudo']); ?>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>Points pour <?php echo htmlspecialchars($player['pseudo']); ?></span>
+                                </div>
                             </label>
                             <input type="number" 
-                                   class="form-control form-control-lg score-input" 
+                                   class="form-control form-control-lg score-input <?php echo $is_starting_player ? 'border-warning' : ''; ?>" 
                                    id="score_<?php echo $player['user_id']; ?>"
                                    name="scores[<?php echo $player['user_id']; ?>]" 
                                    step="10"
-                                   required></div>
+                                   required>
+                        </div>
                         <?php endwhile; ?>
                     </div>
                     
@@ -212,10 +235,15 @@ function validateScores() {
     return true;
 }
 
-// Auto-focus sur le premier input
+// Auto-focus sur le premier input (joueur qui commence)
 document.addEventListener('DOMContentLoaded', function() {
+    // Donner le focus au joueur qui commence (celui avec la bordure warning)
+    const startingInput = document.querySelector('.score-input.border-warning');
     const firstInput = document.querySelector('.score-input');
-    if (firstInput) {
+    
+    if (startingInput) {
+        startingInput.focus();
+    } else if (firstInput) {
         firstInput.focus();
     }
     
