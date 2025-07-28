@@ -15,11 +15,10 @@ switch($action) {
     case 'create':
         if ($_POST && isset($_POST['players']) && is_array($_POST['players'])) {
             $player_ids = $_POST['players'];
-            $is_ranked = isset($_POST['is_ranked']) ? (bool)$_POST['is_ranked'] : true; // Default to ranked
             
             if (count($player_ids) >= 1 && count($player_ids) <= 6) {
                 // Les joueurs sont déjà dans l'ordre souhaité grâce à l'interface
-                $game_id = $game->create($player_ids, $is_ranked);
+                $game_id = $game->create($player_ids);
                 if ($game_id) {
                     header("Location: index.php?page=game&action=play&id=" . $game_id);
                     exit;
@@ -107,9 +106,8 @@ switch($action) {
                     // Terminer la partie
                     $game->finishGame($game_id, $winner_id);
                     
-                    // Récupérer les infos de la partie pour savoir si c'est classé et la saison
+                    // Récupérer les infos de la partie pour la saison
                     $game_data = $game->getById($game_id);
-                    $is_ranked = $game_data['is_ranked'];
                     $season_id = $game_data['season_id'];
                     
                     // Mettre à jour les statistiques des joueurs
@@ -119,10 +117,8 @@ switch($action) {
                         $user->incrementStats($player['user_id'] == $winner_id, $season_id);
                     }
                     
-                    // Calculer les nouveaux ELO seulement si la partie est classée
-                    if ($is_ranked) {
-                        EloCalculator::updateElosAfterGame($db, $game_id, $winner_id);
-                    }
+                    // Calculer les nouveaux ELO pour toutes les parties
+                    EloCalculator::updateElosAfterGame($db, $game_id, $winner_id);
                     
                     header("Location: index.php?page=game&action=finish&id=" . $game_id);
                     exit;

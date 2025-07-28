@@ -28,10 +28,10 @@ try {
     )");
     echo "✅ Table seasons créée\n";
     
-    // 2. Ajouter les colonnes season_id et is_ranked à la table games
+    // 2. Ajouter la colonne season_id à la table games
     echo "🎮 Mise à jour de la table games...\n";
     
-    // Vérifier si les colonnes existent déjà
+    // Vérifier si la colonne existe déjà
     $result = $pdo->query("SHOW COLUMNS FROM games LIKE 'season_id'");
     if ($result->rowCount() == 0) {
         $pdo->exec("ALTER TABLE games ADD COLUMN season_id INT DEFAULT NULL");
@@ -39,15 +39,6 @@ try {
         echo "✅ Colonne season_id ajoutée à games\n";
     } else {
         echo "ℹ️  Colonne season_id existe déjà\n";
-    }
-    
-    $result = $pdo->query("SHOW COLUMNS FROM games LIKE 'is_ranked'");
-    if ($result->rowCount() == 0) {
-        $pdo->exec("ALTER TABLE games ADD COLUMN is_ranked BOOLEAN DEFAULT TRUE");
-        $pdo->exec("ALTER TABLE games ADD INDEX idx_game_ranked (is_ranked)");
-        echo "✅ Colonne is_ranked ajoutée à games\n";
-    } else {
-        echo "ℹ️  Colonne is_ranked existe déjà\n";
     }
     
     // 3. Créer la première saison si aucune saison n'existe

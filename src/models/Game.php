@@ -10,24 +10,23 @@ class Game {
     public $gagnant_id;
     public $status;
     public $season_id;
-    public $is_ranked;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    public function create($player_ids, $is_ranked = true) {
+    public function create($player_ids) {
         // Get current season
         require_once '../src/models/Season.php';
         $season_model = new Season($this->conn);
         $current_season = $season_model->getCurrentSeason();
         $season_id = $current_season ? $current_season['id'] : null;
         
-        // Créer la partie
-        $query = "INSERT INTO " . $this->table_name . " (status, season_id, is_ranked) VALUES ('en_cours', ?, ?)";
+        // Créer la partie - all games are ranked by default
+        $query = "INSERT INTO " . $this->table_name . " (status, season_id) VALUES ('en_cours', ?)";
         $stmt = $this->conn->prepare($query);
         
-        if($stmt->execute([$season_id, $is_ranked])) {
+        if($stmt->execute([$season_id])) {
             $game_id = $this->conn->lastInsertId();
             
             // Ajouter les joueurs à la partie avec l'ordre fourni
@@ -140,9 +139,8 @@ class Game {
         return $stmt->execute();
     }
 
-    public function getAll($limit = 20, $season_id = null, $ranked_only = false) {
+    public function getAll($limit = 20, $season_id = null) {
         $season_filter = $season_id ? "AND g.season_id = :season_id" : "";
-        $ranked_filter = $ranked_only ? "AND g.is_ranked = TRUE" : "";
         
         $query = "SELECT g.*, u.pseudo as gagnant_pseudo, s.name as season_name,
                          COUNT(gp.user_id) as nombre_joueurs
@@ -150,7 +148,7 @@ class Game {
                   LEFT JOIN users u ON g.gagnant_id = u.id
                   LEFT JOIN seasons s ON g.season_id = s.id
                   LEFT JOIN game_players gp ON g.id = gp.game_id
-                  WHERE g.status = 'terminee' $season_filter $ranked_filter
+                  WHERE g.status = 'terminee' $season_filter
                   GROUP BY g.id
                   ORDER BY g.date_partie DESC 
                   LIMIT :limit";

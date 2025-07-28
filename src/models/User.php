@@ -23,7 +23,7 @@ class User {
                              SUM(CASE WHEN g.gagnant_id = u.id THEN 1 ELSE 0 END) as victoires
                       FROM users u
                       LEFT JOIN game_players gp ON u.id = gp.user_id
-                      LEFT JOIN games g ON gp.game_id = g.id AND g.season_id = ? AND g.status = 'terminee' AND g.is_ranked = TRUE
+                      LEFT JOIN games g ON gp.game_id = g.id AND g.season_id = ? AND g.status = 'terminee'
                       GROUP BY u.id, u.pseudo, u.elo
                       HAVING parties_jouees > 0
                       ORDER BY u.elo DESC";

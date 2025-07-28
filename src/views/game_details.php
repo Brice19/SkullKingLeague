@@ -7,17 +7,9 @@
                 Partie du <?php echo date('d/m/Y à H:i', strtotime($game_data['date_partie'])); ?>
             </h5>
             <div>
-                <?php if (isset($game_data['is_ranked'])): ?>
-                    <?php if ($game_data['is_ranked']): ?>
-                        <span class="badge bg-success">
-                            <i class="bi bi-trophy"></i> Classée
-                        </span>
-                    <?php else: ?>
-                        <span class="badge bg-info">
-                            <i class="bi bi-heart"></i> Amicale
-                        </span>
-                    <?php endif; ?>
-                <?php endif; ?>
+                <span class="badge bg-success">
+                    <i class="bi bi-trophy"></i> Classée
+                </span>
                 <?php if (isset($game_data['season_name']) && $game_data['season_name']): ?>
                     <span class="badge bg-secondary">
                         <i class="bi bi-calendar-event"></i> <?php echo htmlspecialchars($game_data['season_name']); ?>

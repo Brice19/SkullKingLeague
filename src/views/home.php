@@ -168,25 +168,6 @@ $users = $user->getAll();
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         Veuillez sélectionner entre 1 et 6 joueurs.
                     </div>
-                    
-                    <!-- Game Type Selection -->
-                    <div class="mt-4">
-                        <h6><i class="bi bi-gear-fill"></i> Type de partie</h6>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="is_ranked" id="ranked" value="1" checked>
-                            <label class="form-check-label" for="ranked">
-                                <strong>Partie classée</strong>
-                                <small class="text-muted d-block">Affecte les ELO et les statistiques saisonnières</small>
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="is_ranked" id="unranked" value="0">
-                            <label class="form-check-label" for="unranked">
-                                <strong>Partie amicale</strong>
-                                <small class="text-muted d-block">N'affecte pas les ELO, juste pour s'amuser</small>
-                            </label>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>

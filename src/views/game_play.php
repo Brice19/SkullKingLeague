@@ -5,17 +5,9 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h4><i class="bi bi-controller"></i> Partie en cours - Manche <?php echo $current_round; ?>/10</h4>
                     <div>
-                        <?php if (isset($game_data['is_ranked'])): ?>
-                            <?php if ($game_data['is_ranked']): ?>
-                                <span class="badge bg-warning">
-                                    <i class="bi bi-trophy"></i> Classée
-                                </span>
-                            <?php else: ?>
-                                <span class="badge bg-light text-dark">
-                                    <i class="bi bi-heart"></i> Amicale
-                                </span>
-                            <?php endif; ?>
-                        <?php endif; ?>
+                        <span class="badge bg-warning">
+                            <i class="bi bi-trophy"></i> Classée
+                        </span>
                     </div>
                 </div>
             </div>

@@ -40,7 +40,9 @@ try {
         date_partie TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         gagnant_id INT,
         status ENUM('en_cours', 'terminee') DEFAULT 'en_cours',
-        FOREIGN KEY (gagnant_id) REFERENCES users(id)
+        season_id INT DEFAULT NULL,
+        FOREIGN KEY (gagnant_id) REFERENCES users(id),
+        INDEX idx_game_season (season_id)
     )");
     echo "✅ Table games créée\n";
     
@@ -88,11 +90,46 @@ try {
         new_elo INT NOT NULL,
         elo_change INT NOT NULL,
         rank INT NOT NULL COMMENT 'Rang réel du joueur dans la partie',
+        season_id INT DEFAULT NULL,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (game_id) REFERENCES games(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        INDEX idx_elo_season (season_id)
     )");
     echo "✅ Table elo_history créée\n";
+
+    // Table seasons
+    echo "🏆 Création de la table seasons...\n";
+    $pdo->exec("CREATE TABLE IF NOT EXISTS seasons (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        end_date TIMESTAMP NULL,
+        is_current BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_current_season (is_current),
+        INDEX idx_season_dates (start_date, end_date)
+    )");
+    echo "✅ Table seasons créée\n";
+    
+    // Table season_stats
+    echo "📊 Création de la table season_stats...\n";
+    $pdo->exec("CREATE TABLE IF NOT EXISTS season_stats (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        season_id INT NOT NULL,
+        user_id INT NOT NULL,
+        final_elo INT NOT NULL,
+        initial_elo INT DEFAULT 1000,
+        parties_jouees INT DEFAULT 0,
+        victoires INT DEFAULT 0,
+        final_rank INT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_season_user (season_id, user_id),
+        INDEX idx_season_rank (season_id, final_rank)
+    )");
+    echo "✅ Table season_stats créée\n";
 
     
     // Table admin (pour l'authentification)
@@ -122,6 +159,17 @@ try {
     // Vérifier le nombre d'utilisateurs ajoutés
     $count = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     echo "✅ $count utilisateurs dans la base\n\n";
+    
+    // Créer la première saison
+    echo "🌟 Création de la première saison...\n";
+    $season_count = $pdo->query("SELECT COUNT(*) FROM seasons")->fetchColumn();
+    if ($season_count == 0) {
+        $pdo->exec("INSERT INTO seasons (name, is_current) VALUES ('Saison 1', TRUE)");
+        $season_id = $pdo->lastInsertId();
+        echo "✅ Saison 1 créée (ID: $season_id)\n";
+    } else {
+        echo "ℹ️  Saisons existantes trouvées ($season_count saisons)\n";
+    }
     
     echo "🎉 Base de données initialisée avec succès !\n";
     echo "🌐 Vous pouvez maintenant accéder à l'application\n";
