@@ -1,10 +1,30 @@
 <?php if ($game_data): ?>
 <div class="card">
     <div class="card-header">
-        <h5>
-            <i class="bi bi-calendar3"></i> 
-            Partie du <?php echo date('d/m/Y à H:i', strtotime($game_data['date_partie'])); ?>
-        </h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5>
+                <i class="bi bi-calendar3"></i> 
+                Partie du <?php echo date('d/m/Y à H:i', strtotime($game_data['date_partie'])); ?>
+            </h5>
+            <div>
+                <?php if (isset($game_data['is_ranked'])): ?>
+                    <?php if ($game_data['is_ranked']): ?>
+                        <span class="badge bg-success">
+                            <i class="bi bi-trophy"></i> Classée
+                        </span>
+                    <?php else: ?>
+                        <span class="badge bg-info">
+                            <i class="bi bi-heart"></i> Amicale
+                        </span>
+                    <?php endif; ?>
+                <?php endif; ?>
+                <?php if (isset($game_data['season_name']) && $game_data['season_name']): ?>
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-calendar-event"></i> <?php echo htmlspecialchars($game_data['season_name']); ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
     <div class="card-body">
         <!-- Gagnant -->
