@@ -31,17 +31,53 @@
     <div class="col-md-4">
         <div class="card text-center">
             <div class="card-body">
-                <i class="bi bi-hourglass-split text-warning" style="font-size: 3rem;"></i>
-                <h3 class="mt-2"><?php echo $stats['games_in_progress']; ?></h3>
-                <p class="text-muted">Parties en cours</p>
+                <i class="bi bi-calendar-event text-info" style="font-size: 3rem;"></i>
+                <h3 class="mt-2"><?php echo $stats['total_seasons']; ?></h3>
+                <p class="text-muted">Saisons</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Current Season Info -->
+<?php if ($current_season): ?>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <div>
+                <strong>Saison actuelle :</strong> <?php echo htmlspecialchars($current_season['name']); ?>
+                <span class="text-muted">
+                    (depuis le <?php echo date('d/m/Y', strtotime($current_season['start_date'])); ?>)
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Actions rapides -->
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-event"></i> Gestion des Saisons</h5>
+            </div>
+            <div class="card-body">
+                <p>Gérez les saisons, démarrez de nouvelles compétitions et consultez l'historique.</p>
+                <div class="d-grid gap-2">
+                    <a href="index.php?page=admin&action=seasons" class="btn btn-info">
+                        <i class="bi bi-list"></i> Voir les saisons
+                    </a>
+                    <a href="index.php?page=admin&action=start_new_season" class="btn btn-warning">
+                        <i class="bi bi-plus-circle"></i> Nouvelle saison
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header">
                 <h5><i class="bi bi-people-fill"></i> Gestion des utilisateurs</h5>
@@ -59,7 +95,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-header">
                 <h5><i class="bi bi-controller"></i> Gestion des parties</h5>
@@ -77,6 +113,30 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Additional Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-hourglass-split text-warning" style="font-size: 3rem;"></i>
+                <h3 class="mt-2"><?php echo $stats['games_in_progress']; ?></h3>
+                <p class="text-muted">Parties en cours</p>
+            </div>
+        </div>
+    </div>
+    <?php if ($current_season): ?>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star-fill text-success" style="font-size: 3rem;"></i>
+                <h3 class="mt-2"><?php echo htmlspecialchars($current_season['name']); ?></h3>
+                <p class="text-muted">Saison actuelle</p>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Actions système -->

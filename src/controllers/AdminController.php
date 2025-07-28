@@ -2,11 +2,13 @@
 require_once '../config/database.php';
 require_once '../src/models/User.php';
 require_once '../src/models/Game.php';
+require_once '../src/models/Season.php';
 
 $database = new Database();
 $db = $database->getConnection();
 $user = new User($db);
 $game = new Game($db);
+$season = new Season($db);
 
 $action = $_GET['action'] ?? 'login';
 
@@ -56,9 +58,13 @@ switch($action) {
         $stats_query = "SELECT 
             (SELECT COUNT(*) FROM users) as total_users,
             (SELECT COUNT(*) FROM games WHERE status = 'terminee') as total_games,
-            (SELECT COUNT(*) FROM games WHERE status = 'en_cours') as games_in_progress
+            (SELECT COUNT(*) FROM games WHERE status = 'en_cours') as games_in_progress,
+            (SELECT COUNT(*) FROM seasons) as total_seasons
         ";
         $stats = $db->query($stats_query)->fetch(PDO::FETCH_ASSOC);
+        
+        // Get current season info
+        $current_season = $season->getCurrentSeason();
         
         include '../src/views/admin_dashboard.php';
         break;
@@ -139,6 +145,62 @@ switch($action) {
         
         header("Location: index.php?page=admin&action=games&error=delete_failed");
         exit;
+
+    case 'seasons':
+        if (!isAdminLoggedIn()) {
+            header("Location: index.php?page=admin&action=login");
+            exit;
+        }
+        
+        $all_seasons = $season->getAllSeasons();
+        $current_season = $season->getCurrentSeason();
+        include '../src/views/admin_seasons.php';
+        break;
+
+    case 'start_new_season':
+        if (!isAdminLoggedIn()) {
+            header("Location: index.php?page=admin&action=login");
+            exit;
+        }
+        
+        if ($_POST && isset($_POST['season_name'])) {
+            $season_name = trim($_POST['season_name']);
+            if (!empty($season_name)) {
+                try {
+                    $new_season_id = $season->startNewSeason($season_name);
+                    header("Location: index.php?page=admin&action=seasons&success=season_started&id=$new_season_id");
+                    exit;
+                } catch (Exception $e) {
+                    $error = "Erreur lors de la création de la saison: " . $e->getMessage();
+                }
+            } else {
+                $error = "Le nom de la saison ne peut pas être vide";
+            }
+        }
+        
+        $current_season = $season->getCurrentSeason();
+        include '../src/views/admin_start_season.php';
+        break;
+
+    case 'season_details':
+        if (!isAdminLoggedIn()) {
+            header("Location: index.php?page=admin&action=login");
+            exit;
+        }
+        
+        $season_id = $_GET['id'] ?? null;
+        if (!$season_id) {
+            header("Location: index.php?page=admin&action=seasons");
+            exit;
+        }
+        
+        $season_info = $season->getById($season_id);
+        $season_stats = $season->getSeasonStats($season_id);
+        $season_games = $season->getSeasonGames($season_id, true, 20);
+        $season_summary = $season->getSeasonSummary($season_id);
+        
+        include '../src/views/admin_season_details.php';
+        break;
 
     default:
         if (isAdminLoggedIn()) {

@@ -15,11 +15,29 @@ class User {
         $this->conn = $db;
     }
 
-    public function getAll() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY elo DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
+    public function getAll($season_id = null) {
+        if ($season_id) {
+            // Get season-specific rankings
+            $query = "SELECT DISTINCT u.id, u.pseudo, u.elo, 
+                             COUNT(DISTINCT g.id) as parties_jouees,
+                             SUM(CASE WHEN g.gagnant_id = u.id THEN 1 ELSE 0 END) as victoires
+                      FROM users u
+                      LEFT JOIN game_players gp ON u.id = gp.user_id
+                      LEFT JOIN games g ON gp.game_id = g.id AND g.season_id = ? AND g.status = 'terminee' AND g.is_ranked = TRUE
+                      GROUP BY u.id, u.pseudo, u.elo
+                      HAVING parties_jouees > 0
+                      ORDER BY u.elo DESC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(1, $season_id);
+            $stmt->execute();
+            return $stmt;
+        } else {
+            // Get all-time rankings
+            $query = "SELECT * FROM " . $this->table_name . " ORDER BY elo DESC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt;
+        }
     }
 
     public function getById($id) {
@@ -81,15 +99,44 @@ class User {
         return $stmt->execute();
     }
 
-    public function incrementStats($won = false) {
+    public function incrementStats($won = false, $season_id = null) {
         $query = "UPDATE " . $this->table_name . " 
                   SET parties_jouees = parties_jouees + 1" . 
                   ($won ? ", victoires = victoires + 1" : "") . " 
                   WHERE id = ?";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->id);
-        return $stmt->execute();
+        $result = $stmt->execute([$this->id]);
+        
+        // Also update season-specific stats if season_id is provided
+        if ($season_id && $result) {
+            $this->updateSeasonStats($season_id, $won);
+        }
+        
+        return $result;
+    }
+    
+    private function updateSeasonStats($season_id, $won) {
+        // Check if season stats record exists
+        $check_query = "SELECT id FROM season_stats WHERE season_id = ? AND user_id = ?";
+        $check_stmt = $this->conn->prepare($check_query);
+        $check_stmt->execute([$season_id, $this->id]);
+        
+        if ($check_stmt->fetch()) {
+            // Update existing record
+            $update_query = "UPDATE season_stats 
+                           SET parties_jouees = parties_jouees + 1" .
+                           ($won ? ", victoires = victoires + 1" : "") .
+                           " WHERE season_id = ? AND user_id = ?";
+            $update_stmt = $this->conn->prepare($update_query);
+            $update_stmt->execute([$season_id, $this->id]);
+        } else {
+            // Create new record
+            $insert_query = "INSERT INTO season_stats (season_id, user_id, parties_jouees, victoires, final_elo) 
+                           VALUES (?, ?, 1, " . ($won ? "1" : "0") . ", ?)";
+            $insert_stmt = $this->conn->prepare($insert_query);
+            $insert_stmt->execute([$season_id, $this->id, $this->elo]);
+        }
     }
 }
 ?>

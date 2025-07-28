@@ -9,17 +9,25 @@ class Game {
     public $date_partie;
     public $gagnant_id;
     public $status;
+    public $season_id;
+    public $is_ranked;
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    public function create($player_ids) {
+    public function create($player_ids, $is_ranked = true) {
+        // Get current season
+        require_once '../src/models/Season.php';
+        $season_model = new Season($this->conn);
+        $current_season = $season_model->getCurrentSeason();
+        $season_id = $current_season ? $current_season['id'] : null;
+        
         // Créer la partie
-        $query = "INSERT INTO " . $this->table_name . " (status) VALUES ('en_cours')";
+        $query = "INSERT INTO " . $this->table_name . " (status, season_id, is_ranked) VALUES ('en_cours', ?, ?)";
         $stmt = $this->conn->prepare($query);
         
-        if($stmt->execute()) {
+        if($stmt->execute([$season_id, $is_ranked])) {
             $game_id = $this->conn->lastInsertId();
             
             // Ajouter les joueurs à la partie avec l'ordre fourni
@@ -42,9 +50,10 @@ class Game {
     }
 
     public function getById($id) {
-        $query = "SELECT g.*, u.pseudo as gagnant_pseudo 
+        $query = "SELECT g.*, u.pseudo as gagnant_pseudo, s.name as season_name
                   FROM " . $this->table_name . " g
                   LEFT JOIN users u ON g.gagnant_id = u.id
+                  LEFT JOIN seasons s ON g.season_id = s.id
                   WHERE g.id = ? LIMIT 0,1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $id);
@@ -131,18 +140,26 @@ class Game {
         return $stmt->execute();
     }
 
-    public function getAll($limit = 20) {
-        $query = "SELECT g.*, u.pseudo as gagnant_pseudo,
+    public function getAll($limit = 20, $season_id = null, $ranked_only = false) {
+        $season_filter = $season_id ? "AND g.season_id = :season_id" : "";
+        $ranked_filter = $ranked_only ? "AND g.is_ranked = TRUE" : "";
+        
+        $query = "SELECT g.*, u.pseudo as gagnant_pseudo, s.name as season_name,
                          COUNT(gp.user_id) as nombre_joueurs
                   FROM " . $this->table_name . " g
                   LEFT JOIN users u ON g.gagnant_id = u.id
+                  LEFT JOIN seasons s ON g.season_id = s.id
                   LEFT JOIN game_players gp ON g.id = gp.game_id
-                  WHERE g.status = 'terminee'
+                  WHERE g.status = 'terminee' $season_filter $ranked_filter
                   GROUP BY g.id
                   ORDER BY g.date_partie DESC 
-                  LIMIT ?";
+                  LIMIT :limit";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $limit, PDO::PARAM_INT);
+        
+        if ($season_id) {
+            $stmt->bindParam(':season_id', $season_id, PDO::PARAM_INT);
+        }
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt;
     }
