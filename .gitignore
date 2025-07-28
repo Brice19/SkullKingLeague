@@ -1,0 +1,49 @@
+# Database and config files
+config/database.local.php
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+temp/
+tmp/
+/tmp/
+
+# Docker volumes and data
+docker-data/
+mysql-data/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.sql.backup
+
+# Node modules (if any JS tooling is added later)
+node_modules/
+
+# Composer vendor (if Composer is added later)
+vendor/
+
+# Build artifacts
+dist/
+build/

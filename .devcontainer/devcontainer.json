@@ -1,0 +1,46 @@
+{
+  "name": "Skull King League Dev Container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/var/www/html",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-json",
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-debug",
+        "ms-vscode.vscode-mysql",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "ms-vscode.vscode-docker"
+      ],
+      "settings": {
+        "php.validate.executablePath": "/usr/local/bin/php",
+        "php.debug.executablePath": "/usr/local/bin/php",
+        "intelephense.files.maxSize": 5000000,
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+      }
+    }
+  },
+
+  "forwardPorts": [80, 3306, 8081],
+  "portsAttributes": {
+    "80": {
+      "label": "Skull King League App",
+      "onAutoForward": "openBrowser"
+    },
+    "3306": {
+      "label": "MySQL Database"
+    },
+    "8081": {
+      "label": "PHPMyAdmin"
+    }
+  },
+
+  "postCreateCommand": "php config/init_db.php",
+  
+  "remoteUser": "www-data"
+}

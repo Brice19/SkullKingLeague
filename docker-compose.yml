@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=mysql
+      - DB_NAME=skull_king_league
+      - DB_USER=skullking_user
+      - DB_PASS=SkullKing_2025!
+    volumes:
+      - .:/var/www/html
+      - ./logs:/var/www/html/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - skull-king-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: skull_king_league
+      MYSQL_USER: skullking_user
+      MYSQL_PASSWORD: SkullKing_2025!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./create_db_user.sql:/docker-entrypoint-initdb.d/01-create_db_user.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - skull-king-network
+
+  # PHPMyAdmin for database management (optional)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: skullking_user
+      PMA_PASSWORD: SkullKing_2025!
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - skull-king-network
+    profiles:
+      - tools
+
+volumes:
+  mysql_data:
+
+networks:
+  skull-king-network:
+    driver: bridge

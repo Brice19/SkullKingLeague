@@ -148,3 +148,80 @@ Tu peux simplifier le calcul avec :
    * Ajout utilisateur
    * Liste utilisateurs
    * Suppression utilisateur (optionnel)
+
+---
+
+## 🐳 **9. Installation avec Docker (Recommandé)**
+
+### 🚀 Démarrage rapide
+
+La méthode la plus simple pour lancer l'application est d'utiliser Docker :
+
+```bash
+# Cloner le projet
+git clone https://github.com/Brice19/SkullKingLeague.git
+cd SkullKingLeague
+
+# Lancer l'environnement de développement
+./docker-dev.sh up
+```
+
+L'application sera accessible à :
+- **Application principale** : http://localhost:8080
+- **Administration** : http://localhost:8080/?page=admin
+- **PHPMyAdmin** : http://localhost:8081 (optionnel)
+
+### 🛠️ Commandes Docker utiles
+
+```bash
+# Démarrer l'environnement
+./docker-dev.sh up
+
+# Arrêter l'environnement
+./docker-dev.sh down
+
+# Voir les logs
+./docker-dev.sh logs
+
+# Ouvrir un shell dans le conteneur
+./docker-dev.sh shell
+
+# Accéder à la base de données
+./docker-dev.sh db-shell
+
+# Tester le fonctionnement
+./docker-dev.sh test
+
+# Voir toutes les commandes disponibles
+./docker-dev.sh help
+```
+
+### 📋 Prérequis Docker
+
+- **Docker** 20.10+
+- **Docker Compose** 2.0+
+
+### 🔧 Configuration avancée
+
+1. **Variables d'environnement** : Copiez `.env.example` vers `.env` et modifiez selon vos besoins
+2. **Ports personnalisés** : Modifiez `docker-compose.yml` si les ports 8080/3306 sont occupés
+3. **Volumes persistants** : Les données MySQL sont automatiquement persistées
+
+### 👥 Développement collaboratif
+
+**VS Code Dev Containers** : Ouvrez le projet dans VS Code et utilisez "Reopen in Container" pour un environnement de développement complet.
+
+**GitHub Codespaces** : Le projet est configuré pour fonctionner directement dans GitHub Codespaces.
+
+### 🧪 Tests automatisés
+
+Les conteneurs incluent des tests automatisés qui vérifient :
+- La connectivité web
+- La connexion à la base de données  
+- L'initialisation des tables
+
+---
+
+## 📖 **10. Installation manuelle**
+
+Pour une installation traditionnelle sans Docker, consultez [INSTALL.md](INSTALL.md).

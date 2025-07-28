@@ -1,0 +1,62 @@
+name: Container Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: docker build -t skull-king-league:test .
+
+    - name: Run container tests
+      run: |
+        # Start the services
+        docker compose up -d
+        
+        # Wait for services to be healthy
+        echo "Waiting for services to start..."
+        timeout 60 bash -c 'until docker compose ps | grep -q "healthy"; do sleep 2; done'
+        
+        # Test that the web server is responding
+        echo "Testing web server..."
+        timeout 30 bash -c 'until curl -f http://localhost:8080/ > /dev/null 2>&1; do sleep 2; done'
+        
+        # Test database connectivity
+        echo "Testing database..."
+        docker compose exec -T mysql mysql -u skullking_user -pSkullKing_2025! -e "SELECT 1;" skull_king_league
+        
+        # Show container logs for debugging
+        echo "=== App Logs ==="
+        docker compose logs app
+        
+        echo "=== MySQL Logs ==="
+        docker compose logs mysql
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'skull-king-league:test'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Cleanup
+      if: always()
+      run: docker compose down -v
