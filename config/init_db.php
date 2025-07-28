@@ -3,10 +3,10 @@
 echo "🏴‍☠️ Initialisation de Skull King League...\n\n";
 
 // Configuration de la base de données
-$host = 'localhost';
-$username = 'skullking_user';
-$password = 'SkullKing_2025!'; // Utilisateur dédié pour l'application
-$db_name = 'skull_king_league';
+$host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+$username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'skullking_user';
+$password = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: 'SkullKing_2025!';
+$db_name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'skull_king_league';
 
 try {
     echo "🔗 Connexion à MySQL...\n";
@@ -76,8 +76,16 @@ try {
 
     // Ajouter des index pour optimiser les requêtes
     echo "📊 Ajout des index pour optimisation...\n";
-    $pdo->exec("CREATE INDEX idx_game_players_order ON game_players(game_id, player_order)");
-    $pdo->exec("CREATE INDEX idx_rounds_starting_player ON rounds(game_id, numero_manche, starting_player_id)");
+    try {
+        $pdo->exec("CREATE INDEX idx_game_players_order ON game_players(game_id, player_order)");
+    } catch(PDOException $e) {
+        // Index already exists, ignore
+    }
+    try {
+        $pdo->exec("CREATE INDEX idx_rounds_starting_player ON rounds(game_id, numero_manche, starting_player_id)");
+    } catch(PDOException $e) {
+        // Index already exists, ignore
+    }
     echo "✅ Index créés\n";
 
     // Table elo_history
