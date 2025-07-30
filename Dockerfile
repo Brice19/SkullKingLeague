@@ -19,7 +19,7 @@ RUN docker-php-ext-install pdo pdo_mysql zip
 RUN a2enmod rewrite
 
 # Configure Apache to use public directory as document root
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
@@ -28,8 +28,7 @@ COPY . /var/www/html/
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 644 /var/www/html/assets/
+    && chmod -R 755 /var/www/html
 
 # Create logs and temp directories
 RUN mkdir -p /var/www/html/logs /var/www/html/temp \
@@ -37,6 +36,9 @@ RUN mkdir -p /var/www/html/logs /var/www/html/temp \
 
 # Expose port 80
 EXPOSE 80
+
+# Activer le buffering de sortie
+RUN echo "output_buffering=4096" > /usr/local/etc/php/conf.d/output-buffering.ini
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

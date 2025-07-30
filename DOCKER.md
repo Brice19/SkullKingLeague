@@ -13,7 +13,7 @@ cd SkullKingLeague
 Access the application:
 - **Main App**: http://localhost:8080
 - **Admin Panel**: http://localhost:8080/?page=admin (admin/admin123)
-- **PHPMyAdmin**: http://localhost:8081 (optional - use `--profile tools`)
+- **PHPMyAdmin**: http://localhost:8081 
 
 ## 🏗️ Architecture
 
@@ -255,9 +255,7 @@ Multiple ways to access the database:
 # MySQL command line
 ./docker-dev.sh db-shell
 
-# PHPMyAdmin (web interface)
-docker-compose --profile tools up -d
-# Access http://localhost:8081
+# Access http://localhost:8081 # (PHPMyAdmin)
 
 # Direct Docker exec
 docker-compose exec mysql mysql -u root -p

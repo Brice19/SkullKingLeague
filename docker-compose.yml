@@ -51,8 +51,6 @@ services:
       - mysql
     networks:
       - skull-king-network
-    profiles:
-      - tools
 
 volumes:
   mysql_data:

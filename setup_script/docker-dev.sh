@@ -81,7 +81,7 @@ start_env() {
     
     print_success "Environment started successfully!"
     print_status "Application: http://localhost:8080"
-    print_status "PHPMyAdmin: http://localhost:8081 (run with --profile tools to enable)"
+    print_status "PHPMyAdmin: http://localhost:8081"
     print_status "Database: localhost:3306"
 }
 
