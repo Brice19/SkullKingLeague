@@ -28,9 +28,6 @@ services:
       MYSQL_PASSWORD: SkullKing_2025!
     ports:
       - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./create_db_user.sql:/docker-entrypoint-initdb.d/01-create_db_user.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -51,9 +48,6 @@ services:
       - mysql
     networks:
       - skull-king-network
-
-volumes:
-  mysql_data:
 
 networks:
   skull-king-network:

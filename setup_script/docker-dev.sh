@@ -78,6 +78,8 @@ start_env() {
         docker compose logs
         exit 1
     }
+
+    docker compose exec app php config/init_db.php
     
     print_success "Environment started successfully!"
     print_status "Application: http://localhost:8080"
@@ -96,6 +98,7 @@ stop_env() {
 restart_env() {
     print_status "Restarting development environment..."
     docker compose restart
+    docker compose exec app php config/init_db.php
     print_success "Environment restarted."
 }
 
