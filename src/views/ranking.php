@@ -13,8 +13,14 @@ $current_season = $season->getCurrentSeason();
 $season_id = isset($_GET['season']) ? $_GET['season'] : ($current_season ? $current_season['id'] : null);
 
 // Get users for the specified season (or all-time if no season)
-$users = $season_id ? $season->getCurrentSeasonRankings() : $user->getAll();
+$users = $season_id ? $season->getSeasonRankings($season_id) : $user->getAll();
 $all_seasons = $season->getAllSeasons();
+
+// Get selected season info for display
+$selected_season = null;
+if ($season_id) {
+    $selected_season = $season->getById($season_id);
+}
 ?>
 
 <div class="row">
@@ -24,7 +30,7 @@ $all_seasons = $season->getAllSeasons();
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-calendar-event"></i> 
-                    <?php echo $season_id && $current_season ? htmlspecialchars($current_season['name']) : 'Tout temps'; ?>
+                    <?php echo $selected_season ? htmlspecialchars($selected_season['name']) : 'Tout temps'; ?>
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="index.php?page=ranking">Tout temps</a></li>
@@ -45,10 +51,16 @@ $all_seasons = $season->getAllSeasons();
             </div>
         </div>
         
-        <?php if ($season_id && $current_season): ?>
+        <?php if ($selected_season): ?>
         <p class="lead">
-            Classement de la saison actuelle : <strong><?php echo htmlspecialchars($current_season['name']); ?></strong>
-            <small class="text-muted">(parties classées uniquement)</small>
+            Classement de la saison : <strong><?php echo htmlspecialchars($selected_season['name']); ?></strong>
+            <?php if ($selected_season['is_current']): ?>
+                <span class="badge bg-success ms-1">Actuelle</span>
+                <small class="text-muted">(parties classées uniquement)</small>
+            <?php else: ?>
+                <span class="badge bg-secondary ms-1">Terminée</span>
+                <small class="text-muted">(classement final)</small>
+            <?php endif; ?>
         </p>
         <?php else: ?>
         <p class="lead">Classement général des joueurs par ordre de rating ELO</p>

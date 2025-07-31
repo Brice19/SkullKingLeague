@@ -197,6 +197,31 @@ class Season {
     }
 
     /**
+     * Get rankings for a specific season
+     * Returns live rankings for current season, saved stats for past seasons
+     */
+    public function getSeasonRankings($season_id) {
+        $current_season = $this->getCurrentSeason();
+        
+        // If this is the current season, return live rankings
+        if ($current_season && $season_id == $current_season['id']) {
+            return $this->getCurrentSeasonRankings();
+        }
+        
+        // For past seasons, return saved final stats
+        $query = "SELECT ss.user_id as id, u.pseudo, ss.final_elo as elo, 
+                         ss.parties_jouees, ss.victoires
+                  FROM season_stats ss
+                  JOIN users u ON ss.user_id = u.id
+                  WHERE ss.season_id = ?
+                  ORDER BY ss.final_rank ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $season_id);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    /**
      * Get season summary statistics
      */
     public function getSeasonSummary($season_id) {
