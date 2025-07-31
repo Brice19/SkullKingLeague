@@ -47,7 +47,7 @@ $users = $user->getAll();
                     <div class="card-body">
                         <i class="bi bi-trophy-fill text-warning" style="font-size: 3rem;"></i>
                         <h5 class="card-title mt-3">Classement</h5>
-                        <p class="card-text">Voir le classement ELO</p>
+                        <p class="card-text">Voir le classement par points</p>
                         <a href="index.php?page=ranking" class="btn btn-warning">
                             Voir le classement
                         </a>

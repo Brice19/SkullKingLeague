@@ -229,8 +229,8 @@ class Game {
 
     public function getOngoingGames($limit = 20) {
         $query = "SELECT g.*, s.name as season_name,
-                         COUNT(gp.user_id) as player_count,
-                         GROUP_CONCAT(u.pseudo ORDER BY gp.player_order SEPARATOR ', ') as players,
+                         COUNT(DISTINCT gp.user_id) as player_count,
+                         GROUP_CONCAT(DISTINCT u.pseudo ORDER BY gp.player_order SEPARATOR ', ') as players,
                          COALESCE(MAX(r.numero_manche), 0) as current_round
                   FROM " . $this->table_name . " g
                   LEFT JOIN seasons s ON g.season_id = s.id
